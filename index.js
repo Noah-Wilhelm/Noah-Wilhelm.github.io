@@ -5,31 +5,40 @@ const SPEED = 4
 const UNSHIELDED = 0.1
 const SHIELD = 3
 var currentMusic = null
+const MISSILE_DESTROYED = 0
+const MISSILE_SELECTED = 1
+const MISSILE_DESELECTED = 2
 const SPEED_CONSTANT = 0.2
 
 eventStream = ""
 Assets = {
-    GAME:"https://cdn.discordapp.com/attachments/1129360427491545110/1151591452997075056/pewport_game_song.wav",
+    GAME: "https://cdn.discordapp.com/attachments/1129360427491545110/1151591452997075056/pewport_game_song.wav",
     MENU: "https://cdn.discordapp.com/attachments/1129360427491545110/1151574377666728026/pewport_menu_music_kajiac.wav",
     YOUDIED: "https://cdn.discordapp.com/attachments/1129360427491545110/1151550980362604685/PewPort_You_Died_Song_kaijac.wav",
     correctlyTyped: "https://cdn.discordapp.com/attachments/1129360427491545110/1151545023201038378/Sound_4.wav",
     incorrectlyTyped: "https://cdn.discordapp.com/attachments/1129360427491545110/1151545022685122560/Sound_3.wav",
-
+    MISSILE_BOOM:"https://soundbible.com/mp3/Shotgun_Blast-Jim_Rogers-1914772763.mp3",
 }
 document.addEventListener('keydown', function (event) {
-    eventStream += event.key
+    // if key is a letter or number, add it to the event stream
+    if (event.key.match(/^[a-z0-9]$/i))
+        eventStream += event.key
     // You can perform actions based on the key pressed here
 });
+// add event listener for the right or left arrow key
+
 function playSong(url) {
-    
-    
+
     currentMusic?.pause?.();
     const audio = new Audio(url);
     audio.loop = true;
-
     audio.play();
-    
-    currentMusic = audio;
+    // sounds more natural if we wait a bit before playing
+    setTimeout(() => { currentMusic?.pause?.(); currentMusic = audio; }, 500);
+
+
+
+
 }
 
 const commonPorts = [
@@ -54,8 +63,8 @@ profiles = {
     missile: {
         type: NORMAL,
         normal: "https://cdn.discordapp.com/attachments/1129360427491545110/1151217013939765258/test_gif_2.gif",
-
-        destroyed: "link to destroyed missile gif",
+        selected:"https://cdn.discordapp.com/attachments/1151675574889218118/1151891198882095216/ezgif-2-794dc685d2.gif",
+        destroyed: "https://cdn.discordapp.com/attachments/1151675574889218118/1151910008573935656/giphy.gif",
         speed: 1,
         size: 150,
 
@@ -64,32 +73,32 @@ profiles = {
     boss: {
         type: BOSS,
         normal: "https://cdn.discordapp.com/attachments/1129360427491545110/1151217013939765258/test_gif_2.gif",
-
-        destroyed: "link to destroyed boss missile gif",
+        selected:"https://cdn.discordapp.com/attachments/1151675574889218118/1151891198882095216/ezgif-2-794dc685d2.gif",
+        destroyed: "https://cdn.discordapp.com/attachments/1151675574889218118/1151910008573935656/giphy.gif gif",
         speed: 0.5,
         size: 300,
     },
     crate: {
         type: CRATE,
         normal: "https://cdn.discordapp.com/attachments/1129360427491545110/1151217013939765258/test_gif_2.gif",
-
-        destroyed: "link to destroyed crate gif",
+        selected:"https://cdn.discordapp.com/attachments/1151675574889218118/1151891198882095216/ezgif-2-794dc685d2.gif",
+        destroyed: "https://cdn.discordapp.com/attachments/1151675574889218118/1151910008573935656/giphy.gif",
         speed: 1,
         size: 150,
     },
     shield: {
         type: SHIELD,
-        normal: "https://cdn.discordapp.com/attachments/1129360427491545110/1151217013939765258/test_gif_2.gif",
-
-        destroyed: "link to destroyed shield gif",
+        normal: "https://media.discordapp.net/attachments/1151675574889218118/1151938227222102046/ezgif-4-4d874feeb9.gif",
+        selected:"https://cdn.discordapp.com/attachments/1151675574889218118/1151891198882095216/ezgif-2-794dc685d2.gif",
+        destroyed: "https://cdn.discordapp.com/attachments/1151675574889218118/1151910008573935656/giphy.gif",
         speed: 1,
         size: 150,
     },
     speed: {
         type: SPEED,
         normal: "https://cdn.discordapp.com/attachments/1129360427491545110/1151217013939765258/test_gif_2.gif",
-
-        destroyed: "link to destroyed speed gif",
+        selected:"https://cdn.discordapp.com/attachments/1151675574889218118/1151891198882095216/ezgif-2-794dc685d2.gif",
+        destroyed: "https://cdn.discordapp.com/attachments/1151675574889218118/1151910008573935656/giphy.gif",
         speed: 1.5,
         size: 150,
     }
@@ -105,16 +114,19 @@ class Game {
     targetAcquisition = null;
     shouldEnd = false;
     counter = 0;
-    progress= -1;
+    progress = -1;
     level = 0;
     multiplier = 0.2;
     previous = "";
     rootDiv = null;
     unusedPorts = commonPorts;
     usedPorts = [];
+    chars = []
+    alternitaves = []
 
     constructor() {
         playSong(Assets.GAME);
+        this.createTargetCycler();
         this.removeGameOver();
         this.createRoot();
         this.createScore();
@@ -123,7 +135,9 @@ class Game {
         this.newMissile();
         this.iterate();
         this.increseLevel();
+
     }
+   
     createRoot() {
 
         const div = document.createElement("div");
@@ -146,6 +160,38 @@ class Game {
         document.body.appendChild(div);
         this.rootDiv = div;
 
+    };
+    findNew(char){
+        console.log ("finding new")
+        
+        let str = this.chars.join("")
+        str += char
+        console.log(str)
+        
+        this.candidates = [];
+        for (const missile of this.activeMissiles) {
+            if (missile.name.startsWith(str)) {
+                this.candidates.push(missile);
+            }
+        }
+        if (this.candidates.length == 0) {
+            this.chars = []
+           
+            new Audio(Assets.incorrectlyTyped).play();
+            return
+        }
+        new Audio(Assets.correctlyTyped).play();
+        console.log(this.candidates)
+        this.candidates.sort((b,a) => a.location - b.location);
+        this.targetAcquisition = this.candidates[0];
+        this.chars.push(char)
+        this.candidates[0].setSelected(true);
+        this.candidates[0].counter= this.chars.length;
+        if (this.chars.length == this.targetAcquisition.name.length){
+            this.targetAcquisition.destroy(true)
+            this.chars = []
+        }
+        
     }
 
 
@@ -188,6 +234,83 @@ class Game {
         document.getElementById("highscore")?.remove();
         document.getElementById("root")?.remove();
     }
+    cycleTargetAcquisition(direction) {
+    
+        this.candidates = [];
+            for (const missile of this.activeMissiles) {
+                if (missile.name.startsWith(this.chars.join(""))) {
+                    this.candidates.push(missile);
+                }
+            }
+        let old = this.targetAcquisition;
+        if (this.targetAcquisition == null) return console .log("no target acquisition")
+        if (this.candidates.length == 0) return console.log("no candidates")
+        const index = this.candidates.indexOf(this.targetAcquisition);
+        if (index == -1) throw new Error("Target acquisition not in candidates, this should never happen");
+        // sort candidates by distance from bottom of screen
+        this.candidates.sort((b,a) => a.left - b.left);
+        if (this.candidates.length == 1) {
+            console.log("1 candidate")
+            this.targetAcquisition = this.candidates[0];
+            old.setSelected(false);
+            this.candidates[0].setSelected(true);
+            this.candidates[0].counter= this.chars.length;
+        } else if (direction == true) {
+            // find the index of the current target
+            const currentIndex = this.candidates.indexOf(this.targetAcquisition);
+
+            // if the current target is the last one, select the first one
+            if (currentIndex == this.candidates.length - 1) {
+                this.targetAcquisition = this.candidates[0];
+                console.log (this.candidates[0])
+                old.setSelected(false);
+                this.candidates[0].setSelected(true);
+                this.candidates[0].counter= this.chars.length;
+                
+            } else {
+                // otherwise select the next one
+
+                this.targetAcquisition = this.candidates[currentIndex + 1];
+                old.setSelected(false);
+
+                this.candidates[currentIndex + 1].setSelected(true);
+                this.candidates[currentIndex + 1].counter= this.chars.length;
+                
+            }
+        } else if (direction == false) {
+            // find the index of the current target
+            const currentIndex = this.candidates.indexOf(this.targetAcquisition);
+
+            // if the current target is the first one, select the last one
+            if (currentIndex == 0) {
+                this.targetAcquisition = this.candidates[this.candidates.length - 1];
+                old.setSelected(false);
+
+                this.candidates[this.candidates.length - 1].setSelected(true);
+                this.candidates[this.candidates.length - 1].counter= this.chars.length;
+                
+            } else {
+                // otherwise select the previous one
+                this.targetAcquisition = this.candidates[currentIndex - 1];
+                old.setSelected(false);
+
+                this.candidates[currentIndex - 1].setSelected(true);
+                this.candidates[currentIndex - 1].counter= this.chars.length;
+                
+            }
+        }
+    }
+    createTargetCycler(){
+        document.addEventListener('keydown',  (event)=> {
+            // if key is a letter or number, add it to the event stream
+            if (event.key == "ArrowRight")
+                this.cycleTargetAcquisition(true)
+            if (event.key == "ArrowLeft")
+                this.cycleTargetAcquisition(false)
+            // You can perform actions based on the key pressed here
+        });
+    }
+
     increseLevel() {
         const level = document.getElementById("level");
         this.level++;
@@ -210,7 +333,7 @@ class Game {
             newPort.style.fontSize = "40px";
             newPort.style.fontFamily = "orbitron";
             document.body.appendChild(newPort);
-            setTimeout(()=>{
+            setTimeout(() => {
                 newPort.remove();
                 this.progress = 0;
             }, 2000);
@@ -294,7 +417,7 @@ class Game {
         quit.style.borderRadius = "10px";
         quit.style.cursor = "pointer";
         quit.onclick = () => {
-          
+
             this.removeGameOver();
             new Menu();
 
@@ -336,7 +459,7 @@ class Game {
     }
     increaseDifficulty() {
         this.progress += 1;
-        if (this.progress>=10+this.level*2) {
+        if (this.progress >= 10 + this.level * 2) {
             this.increseLevel();
             this.progress = -10;
         }
@@ -344,15 +467,15 @@ class Game {
 
     newMissile() {
         if (this.shouldEnd) return;
-        
 
-        let min= Math.max((1000 - this.progress*50)-this.level*20,1)
-       let  max = Math.max((3000 - this.progress*50)-this.level*20,1)
-        if (this.progress<0)
-           return setTimeout(this.newMissile.bind(this),Math.random()*(max-min)+min);
-         
-        
-        
+
+        let min = Math.max((1000 - this.progress * 50) - this.level * 20, 1)
+        let max = Math.max((3000 - this.progress * 50) - this.level * 20, 1)
+        if (this.progress < 0)
+            return setTimeout(this.newMissile.bind(this), Math.random() * (max - min) + min);
+
+
+
         // 70 percent chance of normal missile 10 percent of shield 10 percent of speed 10 percent chance of boss
         let type = Math.random();
         if (type < 0.7) {
@@ -366,33 +489,41 @@ class Game {
         }
         const port = this.usedPorts[Math.floor(Math.random() * this.usedPorts.length)];
 
-        const missile = new Sprite(port[0] , port[1], type, Math.floor(Math.random() * 1000), 0);
+        const missile = new Sprite(port[0], port[1], type, Math.floor(Math.random() * 1000), 0);
 
         missile.on("destroy", (good) => {
             
+            
+            if (this.targetAcquisition == missile){
+                console.log (missile.divName, this.targetAcquisition.divName)
+                this.targetAcquisition = null;
+            }
+
             if (!good) this.decreaseLives(missile.type == BOSS ? 999999999999999 : 1);
             this.activeMissiles.splice(this.activeMissiles.indexOf(missile), 1);
             this.increaseScore(missile.type == BOSS ? 500 : 100);
             this.increaseDifficulty();
             if (good) this.multiplier += 0.2;
-           
+
         });
 
         missile.on("selected", () => {
+            console.log ("selected")
+
             this.targetAcquisition = missile;
         });
 
         missile.on("deselected", () => {
-           
-            this.targetAcquisition = null;
+
+            //this.targetAcquisition = null;
         });
 
         this.activeMissiles.push(missile);
-        setTimeout(this.newMissile.bind(this),Math.random()*(max-min)+min);
+        setTimeout(this.newMissile.bind(this), Math.random() * (max - min) + min);
     }
 
     iterate() {
-      
+
         this.counter++;
         if (this.counter === 20) {
             this.increaseScore(1);
@@ -400,42 +531,71 @@ class Game {
         }
         if (this.shouldEnd) return;
         const input = eventStream;
-        if (this.progress<0)
-         return setTimeout(this.iterate.bind(this), 1);
-            
-        let candidates=[]
+        if (this.progress < 0)
+            return setTimeout(this.iterate.bind(this), 1);
+
+        let candidates = []
         for (const missile of this.activeMissiles) {
             missile.move();
 
             if (this.previous !== input) {
-               
-                if (this.targetAcquisition==null){
-          
+
+                if (this.targetAcquisition == null) {
+
                     if (missile.getNextChar() == input[input.length - 1]) {
-           
+
                         candidates.push(missile);
-                        
+
                     }
 
                 }
                 else if (missile == this.targetAcquisition) {
-                  
-                    missile.checkNextChar(input[input.length - 1]);
-                }
-            }
-    }
-    if (candidates.length>0){
 
-  
-        candidates.sort((b,a)=>a.location-b.location);
-       
-        candidates[0].checkNextChar(input[input.length-1]);
-        
-    } 
+                    let result = missile.checkNextChar(input[input.length - 1])
+                    switch (result) {
+                        case MISSILE_DESTROYED:
+                            this.chars = []
+                            break;
+                        case MISSILE_SELECTED:
+                            this.chars.push(input[input.length - 1])
+                            break;
+                        case MISSILE_DESELECTED:
+                            this.findNew(input[input.length - 1])
+                            break;
+
+                }
+                this.previous = input;
+
+                return   setTimeout(this.iterate.bind(this), 1);
+            }
+
+
+            }
+        }
+        if (candidates.length > 0) {
+
+
+            candidates.sort((b, a) => a.location - b.location);
+
+            let result= candidates[0].checkNextChar(input[input.length - 1])
+                    switch (result) {
+                        case MISSILE_DESTROYED:
+                            this.chars = []
+                            break;
+                        case MISSILE_SELECTED:
+                            this.chars.push(input[input.length - 1])
+                            break;
+                        case MISSILE_DESELECTED:
+                            this.findNew(input[input.length - 1])
+                            break;
+                            
+        }
+    }
         this.previous = input;
-       
+
         setTimeout(this.iterate.bind(this), 1);
     }
+
 
     destroy() {
         this.activeMissiles.forEach((x) => x.destroy(true));
@@ -499,9 +659,12 @@ class Sprite {
     deshield() {
         if (this.isShielded) {
             this.isShielded = false;
-            this.div.style.backgroundColor = "red";
+            let audio= new Audio(Assets.MISSILE_BOOM)
+            audio.volume = 0.2
+            audio.play();
+            this.div.style.backgroundImage = `url(${profiles.missile.destroyed})`;
             setTimeout(() => {
-                this.div.style.backgroundColor = null;
+              
                 this.div.style.backgroundImage = `url(${profiles.missile.normal})`;
             }, 1000);
 
@@ -536,25 +699,25 @@ class Sprite {
                 if (this.isShielded) {
                     this.deshield();
                     this.setSelected(false);
-                    
+
                     this.counter = 0;
-                    return false
+                    return MISSILE_DESTROYED
                 }
                 else {
                     new Audio(Assets.correctlyTyped).play();
                     this.destroy(true);
-                    return false;
+                    return MISSILE_DESTROYED
                 }
             }
             // play correctletter sound
 
-            this.setSelected(true,1);
-            return true;
+            this.setSelected(true, 1);
+            return MISSILE_SELECTED
         } else {
-       
+
             this.counter = 0;
-            this.setSelected(false,2);
-            return false;
+            this.setSelected(false, 2);
+            return MISSILE_DESELECTED
         }
     }
     getNextChar() {
@@ -570,7 +733,7 @@ class Sprite {
         if (this.location + this.size > window.innerHeight * 0.9) {
             this.destroy(false);
         } else if (this.location + this.size > window.innerHeight * 0.8) {
-            this.location += (SPEED_CONSTANT/2)* this.speedMultiplier;
+            this.location += (SPEED_CONSTANT / 2) * this.speedMultiplier;
         } else {
             this.location += SPEED_CONSTANT * this.speedMultiplier;
         }
@@ -578,25 +741,25 @@ class Sprite {
     }
 
     destroy(good) {
-        this.setSelected(false);
-        let increased = this.size * 1.5;
-        this.div.style.backgroundColor = "red";
-        if (good) {
-            this.div.style.size = increased + "px";
-            this.div.style.backgroundSize = increased + "px";
-        }
-        this.div.style.backgroundImage = null;
+       
+        this.div.style.backgroundImage = `url(${profiles.missile.destroyed})`;
+        // play explosion sound at half volume
+        let audio= new Audio(Assets.MISSILE_BOOM)
+        audio.volume = 0.2
+        audio.play();
+  
         setTimeout(this.div.remove.bind(this.div), 0.2 * 1000);
         this.handlers["destroy"].forEach((x) => x(good));
     }
 
-    setSelected(shouldSelect, play=0) {
-        
-        if (play==1)
+    setSelected(shouldSelect, play = 0) {
+        // create stack trace
+        console.trace();
+
+        if (play == 1)
             new Audio(Assets.correctlyTyped).play();
-        if (this._selected == shouldSelect) return;
-        if (play==2)
-            new Audio(Assets.incorrectlyTyped).play();
+        if (this._selected == shouldSelect) return this.handlers["selected"].forEach((x) => x());
+       
 
 
 
@@ -604,15 +767,11 @@ class Sprite {
         let increasedSize = this.size * 1.5;
         if (this._selected) {
             this.div.style.fontSize = "50px";
-            this.div.style.width = increasedSize + "px";
-            this.div.style.height = increasedSize + "px";
-            this.div.style.backgroundSize = increasedSize + "px";
+            this.div.style.backgroundImage = `url(${profiles.missile.selected})`;
             this.handlers["selected"].forEach((x) => x());
         } else {
             this.div.style.fontSize = "20px";
-            this.div.style.width = "150px";
-            this.div.style.height = "150px";
-            this.div.style.backgroundSize = "150px";
+            this.div.style.backgroundImage = `url(${profiles.missile.normal})`;
             this.handlers["deselected"].forEach((x) => x());
         }
     }
@@ -638,7 +797,7 @@ class Menu {
             localStorage.setItem("highscore", 0);
 
         }
-        
+
         playSong(Assets.MENU);
         this.createStart();
         this.createTitle();
@@ -674,7 +833,7 @@ class Menu {
     }
     createTitle() {
         const title = document.createElement("p");
-        title.innerHTML = "ProtoBlaster";
+        title.innerHTML = "PortBlaster";
         title.style.textAlign = "center";
         title.style.color = "white";
         title.style.fontSize = "70px";
