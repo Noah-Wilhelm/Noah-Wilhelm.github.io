@@ -366,7 +366,7 @@ class Game {
         }
         const port = this.usedPorts[Math.floor(Math.random() * this.usedPorts.length)];
 
-        const missile = new Sprite(port[0] + "newline"+port[1], port[1], type, Math.floor(Math.random() * 1000), 0);
+        const missile = new Sprite(port[0] , port[1], type, Math.floor(Math.random() * 1000), 0);
 
         missile.on("destroy", (good) => {
             
