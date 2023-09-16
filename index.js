@@ -201,41 +201,26 @@ class Game {
 
     }
     pause() {
+        this.rootDiv.style.filter = "blur(10px)";
         let div = document.createElement("div");
         div.id = "pause";
         div.style.width = "50%";
-
         div.style.height = "25%";
-        this.rootDiv.style.filter = "blur(10px)";
         div.style.top = "30%";
         div.style.position = "absolute";
         div.style.display = "flex";
         div.style.fontFamily = "orbitron";
-
         div.style.color = "white";
-
-        // use radial gradient to make it fade to transparent in all directions from the center
-
-
-
-
         div.style.textAlign = "center";
         div.style.verticalAlign = "middle";
         div.style.left = "25%";
         div.style.alignContent = "center";
-        // make div appear to glow by making a line in the middle and adding large box shadow
-
-
         div.style.zIndex = "100";
-        let shadowLine = document.createElement("div");
-        shadowLine.style.width = "100%";
-        shadowLine.style.height = "50%";
+
 
         let text = document.createElement("p");
-
         text.innerHTML = "GAME PAUSED";
         text.style.position = "absolute";
-
         text.style.left = "50%";
         text.style.top = "30%";
         text.style.width = "100%";
@@ -247,13 +232,11 @@ class Game {
         text.style.border = "none";
         text.style.padding = "10px";
         div.appendChild(text);
+
         let resume = document.createElement("button");
-        //  make resume appear under text and to the left
         resume.style.position = "absolute";
         resume.style.left = "33%";
         resume.style.top = "90%";
-
-
         resume.innerHTML = "Resume";
         resume.style.transform = "translate(-50%, -50%)";
         resume.style.fontFamily = "orbitron";
@@ -263,6 +246,7 @@ class Game {
         resume.id = "resume";
         resume.style.border = "none";
         resume.style.padding = "10px";
+
         resume.addEventListener("mouseover", () => {
             resume.style.color = "blue";
             resume.style.fontSize = "35px";
@@ -277,6 +261,7 @@ class Game {
             this.resume();
         });
         div.appendChild(resume);
+
         let quit = document.createElement("button");
         quit.innerHTML = "Main Menu";
         quit.style.position = "absolute";
@@ -290,6 +275,7 @@ class Game {
         quit.id = "quit";
         quit.style.border = "none";
         quit.style.padding = "10px";
+
         quit.addEventListener("mouseover", () => {
             quit.style.color = "blue";
             quit.style.fontSize = "35px";
@@ -308,20 +294,16 @@ class Game {
 
         div.appendChild(quit);
         document.body.appendChild(div);
-
-
         this.shouldPause = true;
+    };
 
-    }
     resume() {
         this.shouldPause = false;
-
         document.getElementById("pause").remove();
         this.rootDiv.style.filter = "blur(0px)";
+    };
 
-    }
     createRoot() {
-
         const div = document.createElement("div");
         div.id = "root";
         div.style.width = "100vw";
@@ -335,21 +317,13 @@ class Game {
         div.style.overflow = "hidden";
         div.style.left = "0px";
         div.style.top = "0px";
-
-
-
-
         document.body.appendChild(div);
         this.rootDiv = div;
-
     };
-    findNew(char) {
-        console.log("finding new")
 
+    findNew(char) {
         let str = this.chars.join("")
         str += char
-        console.log(str)
-
         this.candidates = [];
         for (const missile of this.activeMissiles) {
             if (missile.name.startsWith(str)) {
@@ -358,7 +332,6 @@ class Game {
         }
         if (this.candidates.length == 0) {
             this.chars = []
-
             new Audio(Assets.incorrectlyTyped).play();
             return
         }
@@ -370,12 +343,10 @@ class Game {
         this.candidates[0].setSelected(true);
         this.candidates[0].counter = this.chars.length;
         if (this.chars.length == this.targetAcquisition.name.length) {
-            this.targetAcquisition.destroy(true)
+            this.targetAcquisition.destroy(true);
             this.chars = []
-        }
-
-    }
-
+        };
+    };
 
     loadResource() {
         const img = document.createElement("img");
@@ -383,8 +354,7 @@ class Game {
         img.style.display = "none";
         this.rootDiv.appendChild(img);
         const img2 = document.createElement("img");
-
-    }
+    };
 
     createScore() {
         const score = document.createElement("p");
@@ -396,7 +366,8 @@ class Game {
         score.innerHTML = "Score: 0";
         score.style.fontFamily = "orbitron";
         this.rootDiv.appendChild(score);
-    }
+    };
+
     createLevel() {
         const level = document.createElement("p");
         level.id = "level";
@@ -408,75 +379,70 @@ class Game {
         level.style.fontSize = "40px";
         level.style.fontFamily = "orbitron";
         this.rootDiv.appendChild(level);
-    }
+    };
 
     removeGameOver() {
-
         document.getElementById("gameover")?.remove();
         document.getElementById("restart")?.remove();
         document.getElementById("quit")?.remove();
         document.getElementById("highscore")?.remove();
         document.getElementById("root")?.remove();
-    }
-    cycleTargetAcquisition(direction) {
+    };
 
+    cycleTargetAcquisition(direction) {
         this.candidates = [];
         for (const missile of this.activeMissiles) {
             if (missile.name.startsWith(this.chars.join(""))) {
                 this.candidates.push(missile);
             }
         }
-        console.log(this.candidates)
+
         if (this.candidates.length == 0) return // likely to happen
-        this.candidates.sort([(a,b)=>a.location-b.location,(a,b)=>b.location-a.location,(a,b)=>a.left-b.left,(a,b)=>b.left-a.left][direction])
-        console.log(this.candidates)
+
+        this.candidates.sort([(a, b) => a.location - b.location, (a, b) => b.location - a.location, (a, b) => a.left - b.left, (a, b) => b.left - a.left][direction])
+
         let index = this.candidates.indexOf(this.targetAcquisition)
-        if (index == -1) return  console.log("not found")
-        if (index == this.candidates.length - 1) index = -1
-        let nextIndex = index + 1
-        console.log(nextIndex)
+        if (index == -1) return // should never happen
+
+        let nextIndex = index + 1 == this.candidates.length ? 0 : index + 1
+
         this.targetAcquisition.setSelected(false)
-        this.targetAcquisition = this.candidates[nextIndex] 
+        this.targetAcquisition = this.candidates[nextIndex]
         this.targetAcquisition.setSelected(true)
+    };
 
-
-    }
     createTargetCycler() {
         document.addEventListener('keydown', (event) => {
-            // if key is a letter or number, add it to the event stream
-          let keys=["arrowdown", "arrowup", "arrowright", "arrowleft"]
-          if (keys.indexOf(event.key.toLowerCase())==-1) return
+            let keys = ["arrowdown", "arrowup", "arrowright", "arrowleft"]
+            if (keys.indexOf(event.key.toLowerCase()) == -1) return
             this.cycleTargetAcquisition(keys.indexOf(event.key.toLowerCase()))
-            // You can perform actions based on the key pressed here
         });
-    }
+    };
+
     catchPause() {
         document.addEventListener('keydown', (event) => {
 
-            // if key is escape, pause the game
             if (event.key == "Escape") {
                 if (this.shouldPause)
-                    this.resume()
+                    this.resume();
                 else
-                    this.pause()
+                    this.pause();
 
-            }
+            };
         });
-    }
+    };
     increseLevel() {
-
-
         const level = document.getElementById("level");
         this.level++;
         level.innerHTML = "Level: " + this.level;
-        // new port
+
         let port = this.unusedPorts[Math.floor(Math.random() * this.unusedPorts.length)];
         if (!port) port = ["", ""];
         this.usedPorts.push(port);
         this.unusedPorts = this.unusedPorts.filter((x) => !this.usedPorts.includes(x));
 
-        // if the level is less or equal to the number of ports, display on screen (NEW PORT! portname: portnumber)
-        if (this.level <= commonPorts.length || true) {
+
+        if (this.level <= commonPorts.length) {
             const newPort = document.createElement("p");
             newPort.id = "newport";
             newPort.style.color = "white";
@@ -492,15 +458,14 @@ class Game {
                 newPort.remove();
                 this.progress = 0;
             }, this.gameMode.actuallyImpossible ? 1 : 2000);
-        }
-    }
+        };
+    };
 
     createGameOver() {
         playSong(Assets.YOUDIED);
-        // blur the screen
+
         this.rootDiv.style.filter = "blur(10px)";
 
-        // add GAME OVER to center of screen
         const p = document.createElement("p");
         p.innerHTML = "GAME OVER";
         p.id = "gameover";
@@ -513,29 +478,27 @@ class Game {
         p.style.top = "35%";
         p.style.transform = "translate(-50%, -50%)";
         p.style.fontFamily = "orbitron";
+
         const highscore = document.createElement("p");
         let highscoreValue = localStorage.getItem("highscore" + this.gameMode.name) || 0;
         if (this.score > highscoreValue) {
-
             localStorage.setItem("highscore" + this.gameMode.name, this.score);
             highscore.innerHTML = "New highscore: " + this.score;
         } else {
-            highscore.innerHTML = "Highscore: " + highscoreValue + "newlineYour score: " + this.score;
+            highscore.innerHTML = "Highscore: " + highscoreValue + "<br>Your score: " + this.score;
         }
+
         highscore.style.textAlign = "center";
         highscore.style.color = "white";
         highscore.id = "highscore";
         highscore.style.fontSize = "20px";
-        // create linebreak for \n
-        highscore.innerHTML = highscore.innerHTML.replace(/newline/g, '<br>');
         highscore.style.position = "absolute";
         highscore.style.fontFamily = "orbitron";
         highscore.style.left = "50%";
         highscore.style.top = "3%";
         highscore.style.transform = "translate(-50%, -50%)";
-        highscore.style.fontFamily = "orbitron";
         document.body.appendChild(highscore);
-        // two buttons: restart and quit
+
         const restart = document.createElement("button");
         restart.innerHTML = "Restart";
         restart.style.position = "absolute";
@@ -551,10 +514,11 @@ class Game {
         restart.style.padding = "10px";
         restart.style.borderRadius = "10px";
         restart.style.cursor = "pointer";
+
         restart.onclick = () => {
             new Game(this.gameMode);
         }
-        document.body.appendChild(restart);
+
         const quit = document.createElement("button");
         quit.innerHTML = "Quit";
         quit.style.position = "absolute";
@@ -570,16 +534,16 @@ class Game {
         quit.style.padding = "10px";
         quit.style.borderRadius = "10px";
         quit.style.cursor = "pointer";
-        quit.onclick = () => {
 
+        quit.onclick = () => {
             this.removeGameOver();
             new Menu(this.gameMode);
-
-
         }
+        document.body.appendChild(restart);
         document.body.appendChild(quit);
         document.body.appendChild(p);
-    }
+
+    };
     createLives() {
         const lives = document.createElement("p");
         lives.id = "lives";
@@ -589,15 +553,14 @@ class Game {
         lives.style.position = "absolute";
         lives.style.left = "50px";
         lives.style.top = "0px";
-
         lives.innerHTML = "Lives: 3";
         this.rootDiv.appendChild(lives);
-    }
+    };
 
     increaseScore(amount) {
         this.score += amount;
         document.getElementById("score").innerHTML = "Score: " + this.score;
-    }
+    };
 
     decreaseLives(amount) {
 
@@ -605,20 +568,18 @@ class Game {
         document.getElementById("lives").innerHTML = "Lives: " + this.lives;
         if (this.lives <= 0) {
             this.destroy();
-        }
-    }
+        };
+    };
     increaseDifficulty() {
         this.progress += 1;
         if (this.progress >= 10 + this.level * 2) {
             this.increseLevel();
             this.progress = -10;
-        }
-    }
-
+        };
+    };
     newMissile() {
         if (this.shouldEnd) return
         if (this.shouldPause) return setTimeout(this.newMissile.bind(this), 1);
-
 
         // to be honest, I just keep adding stuff to make it seem balanced
         let min = Math.max((this.gameMode.spawnRate[0] - this.progress * 50) - (this.level * 20), 1)
@@ -626,82 +587,58 @@ class Game {
         if (this.progress < 0)
             return setTimeout(this.newMissile.bind(this), Math.random() * (max - min) + min);
 
-
-
-
-        // 70 percent chance of normal missile 10 percent of shield 10 percent of speed 10 percent chance of boss
-
-        let type = profiles.missile
+        let type = profiles.missile;
         if (Math.random() < this.gameMode.specialMissle)
-            type = [profiles.speed, profiles.shield, profiles.boss][Math.floor(Math.random() * 3)]
-
+            type = [profiles.speed, profiles.shield, profiles.boss][Math.floor(Math.random() * 3)];
 
         const port = this.usedPorts[Math.floor(Math.random() * this.usedPorts.length)];
-
-
         const missile = new Sprite(port[0] + (this.gameMode.baby ? `newline${port[1]}` : ""), port[1], type, Math.floor(Math.random() * 1000), 0, this.gameMode.speed);
 
         missile.on("destroy", (good) => {
-
-
-            if (this.targetAcquisition == missile) {
-                console.log(missile.divName, this.targetAcquisition.divName)
+            if (this.targetAcquisition == missile)
                 this.targetAcquisition = null;
-            }
 
             if (!good) this.decreaseLives(missile.type == BOSS ? 5 : 1);
             this.activeMissiles.splice(this.activeMissiles.indexOf(missile), 1);
             if (good) this.increaseScore(missile.type == BOSS ? 500 : 100);
             this.increaseDifficulty();
-            if (good) this.multiplier += 0.2;
-
         });
 
         missile.on("selected", () => {
-            console.log("selected")
-
             this.targetAcquisition = missile;
         });
 
         missile.on("deselected", () => {
-
             //this.targetAcquisition = null;
         });
 
         this.activeMissiles.push(missile);
         setTimeout(this.newMissile.bind(this), Math.random() * (max - min) + min);
-    }
+    };
 
     iterate() {
+
         if (this.shouldEnd) return;
         if (this.shouldPause) return setTimeout(this.iterate.bind(this), 1);
-        this.counter++;
+        if (this.progress < 0) return setTimeout(this.iterate.bind(this), 1);
+
+        this.counter++; // every 20 iterations, increase score by 1
+
         if (this.counter === 20) {
             this.increaseScore(1);
             this.counter = 0;
         }
 
         const input = eventStream;
-        if (this.progress < 0)
-            return setTimeout(this.iterate.bind(this), 1);
-
-        let candidates = []
+        let candidates = [];
         for (const missile of this.activeMissiles) {
             missile.move();
 
-            if (this.previous !== input) {
-
-                if (this.targetAcquisition == null) {
-
-                    if (missile.getNextChar() == input[input.length - 1]) {
-
+            if (this.previous !== input) { // if there is recent input
+                if (this.targetAcquisition == null &&missile.getNextChar() == input[input.length - 1]) 
                         candidates.push(missile);
 
-                    }
-
-                }
                 else if (missile == this.targetAcquisition) {
-
                     let result = missile.checkNextChar(input[input.length - 1])
                     switch (result) {
                         case MISSILE_DESTROYED:
@@ -713,21 +650,15 @@ class Game {
                         case MISSILE_DESELECTED:
                             this.findNew(input[input.length - 1])
                             break;
+                    };
 
-                    }
                     this.previous = input;
-
                     return setTimeout(this.iterate.bind(this), 1);
-                }
-
-
-            }
-        }
+                };
+            };
+        };
         if (candidates.length > 0) {
-
-
             candidates.sort((b, a) => a.location - b.location);
-
             let result = candidates[0].checkNextChar(input[input.length - 1])
             switch (result) {
                 case MISSILE_DESTROYED:
@@ -739,19 +670,15 @@ class Game {
                 case MISSILE_DESELECTED:
                     this.findNew(input[input.length - 1])
                     break;
+            };
+        };
 
-            }
-        }
         this.previous = input;
-
         setTimeout(this.iterate.bind(this), 1);
-    }
-
+    };
 
     destroy() {
         this.activeMissiles.forEach((x) => x.destroy(true));
-
-
         this.activeMissiles = [];
         this.shouldEnd = true;
 
@@ -768,13 +695,15 @@ class Game {
             div.className = "explosion";
             document.body.appendChild(div);
             setTimeout(div.remove.bind(div), 1300);
-        }
+        };
+
         this.createGameOver();
         setTimeout(this.rootDiv.remove.bind(this.rootDiv), 1300);
+    };
 
-    }
+};
 
-}
+
 
 
 class Sprite {
@@ -808,7 +737,8 @@ class Sprite {
         document.getElementById("root").appendChild(this.div);
         this.jiggler();
         return this;
-    }
+    };
+
     deshield() {
         if (this.isShielded) {
             this.isShielded = false;
@@ -816,15 +746,12 @@ class Sprite {
             audio.volume = 0.2
             audio.play();
             this.div.style.backgroundImage = `url(${profiles.missile.destroyed})`;
-            setTimeout(() => {
 
+            setTimeout(() => {
                 this.div.style.backgroundImage = `url(${profiles.missile.normal})`;
             }, 1000);
-
-
-        }
-    }
-
+        };
+    };
 
     renderDiv() {
         this.div.innerHTML = this.displayName;
@@ -853,7 +780,6 @@ class Sprite {
                 if (this.isShielded) {
                     this.deshield();
                     this.setSelected(false);
-
                     this.counter = 0;
                     return MISSILE_DESTROYED
                 }
@@ -863,25 +789,23 @@ class Sprite {
                     return MISSILE_DESTROYED
                 }
             }
-            // play correctletter sound
-
             this.setSelected(true, 1);
             return MISSILE_SELECTED
         } else {
-
             this.counter = 0;
             this.setSelected(false, 2);
             return MISSILE_DESELECTED
-        }
-    }
+        };
+    };
+    
     getNextChar() {
         return this.name[this.counter];
-    }
+    };
 
     jiggler() {
         this.div.style.transform = "rotate(" + (Math.random() * 6 - 3) + "deg)";
         setTimeout(this.jiggler.bind(this), 100);
-    }
+    };
 
     move() {
         if (this.location + this.size > window.innerHeight * 0.9) {
@@ -890,14 +814,14 @@ class Sprite {
             this.location += (this.speed / 2) * this.speedMultiplier;
         } else {
             this.location += this.speed * this.speedMultiplier;
-        }
+        };
+
         this.div.style.top = this.location + "px";
-    }
+    };
 
     destroy(good) {
-
         this.div.style.backgroundImage = `url(${profiles.missile.destroyed})`;
-        // play explosion sound at half volume
+
         let audio = new Audio(Assets.MISSILE_BOOM)
         audio.volume = 0.2
         audio.play();
@@ -907,18 +831,14 @@ class Sprite {
     }
 
     setSelected(shouldSelect, play = 0) {
-        // create stack trace
-        console.trace();
-
+        
         if (play == 1)
             new Audio(Assets.correctlyTyped).play();
+
         if (this._selected == shouldSelect) return this.handlers["selected"].forEach((x) => x());
 
-
-
-
         this._selected = shouldSelect;
-        let increasedSize = this.size * 1.5;
+ 
         if (this._selected) {
             this.div.style.fontSize = "50px";
             this.div.style.backgroundImage = `url(${profiles.missile.selected})`;
@@ -927,37 +847,36 @@ class Sprite {
             this.div.style.fontSize = "20px";
             this.div.style.backgroundImage = `url(${profiles.missile.normal})`;
             this.handlers["deselected"].forEach((x) => x());
-        }
-    }
+        };
+    };
 
     getSelected() {
         return this._selected;
-    }
+    };
 
     on(event, handler) {
         if (!this.handlers[event]) return console.error("Invalid event: " + event);
         this.handlers[event].push(handler);
-    }
-}
+    };
+};
 
 
-function restore() {
-
-
-}
 class Menu {
-    userclick = false;
     menuDiv = null;
     selectedGameMode = null;
+    listener = null;
+
     constructor(startingMode) {
         this.selectedGameMode = startingMode || difficulty.Medium
-
         if (typeof localStorage.getItem("highscore") == "object") {
             localStorage.setItem("highscore", 0);
+        };
 
-        }
+        this.createClickToStart();
+        this.menuDiv = this.createMenuDiv();
+    };
 
-        // create the text "click anywhere to start"
+    createClickToStart() {
         const clickToStart = document.createElement("p");
         clickToStart.innerHTML = "PLAY MUSIC? (YES/YES) (its good music)";
         clickToStart.style.textAlign = "center";
@@ -969,23 +888,18 @@ class Menu {
         clickToStart.style.top = "50%";
         clickToStart.style.transform = "translate(-50%, -50%)";
         clickToStart.style.fontFamily = "orbitron";
-        // make appear over everything else
         clickToStart.style.zIndex = "100";
-
         document.body.appendChild(clickToStart);
-
-        document.addEventListener('click', (event) => {
-            if (this.userclick) return
-            this.userclick = true;
+        
+        this.listenerFunction =(event) => {
             playSong(Assets.MENU);
             clickToStart.remove();
             if (this.menuDiv) this.menuDiv.style.filter = "none";
+            document.removeEventListener('click', this.listenerFunction);
+        };
+        document.addEventListener('click', this.listenerFunction);
+    };
 
-
-        })
-
-        this.menuDiv = this.createMenuDiv();
-    }
     createMenuDiv() {
         const div = document.createElement("div");
         div.id = "menu";
@@ -996,16 +910,14 @@ class Menu {
         div.style.width = "30%";
         div.style.backgroundColor = "rgba(255, 255, 255, .15)";
         div.style.borderRadius = "5px";
-
         div.style.boxShadow = "0 0 1rem 0 rgba(0, 0, 0, .2)";
         div.style.backdropFilter = "blur(5px)";
 
-        // Create an array to hold our buttons
         const buttons = [];
         const contentDivs = [];
         const buttonNames = ["Play", "Settings", "Credits", "Quit"];
 
-        // Create four buttons
+        // some crazy code will ensue
         for (let i = 0; i < 4; i++) {
             const button = document.createElement("button");
             button.textContent = buttonNames[i];
@@ -1018,82 +930,68 @@ class Menu {
             button.style.cursor = "pointer";
             button.style.fontSize = "20px";
             button.style.fontFamily = "orbitron";
-
-            // Start with the first button selected
+         
             if (i === 0) {
                 button.style.backgroundColor = "rgba(255, 255, 255, 0)";
                 button.style.borderTop = "2px solid blue";
-
                 button.style.borderTopLeftRadius = "5px";
                 button.selected = true;
-            }
-            else {
-                button.style.borderTop = "2px solid rgba(255, 255, 255, 0)"
-            }
-            if (i === 3) {
+            } else button.style.borderTop = "2px solid rgba(255, 255, 255, 0)";
+            
+            if (i === 3) 
                 button.style.borderTopRightRadius = "5px";
-            }
+            
             // on hover make text blue and glowing effect
             button.onmouseover = () => {
                 button.style.color = "blue";
                 button.style.textShadow = "0 0 10px blue";
                 button.style.borderTop = "2px solid blue";
-            }
+            };
             button.onmouseout = () => {
                 button.style.color = "white";
                 button.style.textShadow = "none";
                 if (!button.selected) button.style.borderTop = "2px solid rgba(255, 255, 255, 0)"
-            }
+            };
 
             // Add a click event listener to each button
             button.addEventListener("click", () => {
-                // if quit rickroll
-
                 buttons.forEach((btn) => {
                     btn.style.backgroundColor = "rgba(0, 0, 0, .5)";
                     // give slight bottom border to selected button
                     btn.style.borderTop = "2px solid rgba(255, 255, 255, 0)"
                     btn.selected = false;
                 });
-                button.selected = true;
 
+                button.selected = true;
                 button.style.backgroundColor = "rgba(255, 255, 255, 0)";
                 button.style.borderTop = "2px solid blue";
-                if (i == 3) { // i mean, how else would you quit?
+
+                if (i == 3)
                     window.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-                }
 
-
-
-                contentDivs.forEach((div) => {
-                    div.style.display = "none";
-                });
+                let displayNone=(div) => {div.style.display = "none";};
+                contentDivs.forEach(displayNone);
                 contentDivs[i].style.display = "block";
-
-
             });
             const contentDiv = document.createElement("div");
             contentDiv.style.height = "90%";
             div.style.overflow = "hidden";
             contentDiv.style.display = "none";
-            if (i == 0) {
+            // upon implementation of settings and credits, change this to a switch statement
+            if (i == 0) 
                 contentDiv.appendChild(this.createDifficultyDiv());
-            }
-
 
             contentDivs.push(contentDiv);
-
             div.appendChild(button);
             buttons.push(button);
-        }
+        };
+
         contentDivs.forEach(div.appendChild.bind(div));
         contentDivs[0].style.display = "block";
-
         document.body.appendChild(div);
 
         div.style.filter = "blur(10px)"; // Blur the menu div until the user clicks
         return div;
-
     }
 
     createDifficultyDiv() {
@@ -1103,7 +1001,6 @@ class Menu {
         div.style.width = "100%";
         div.style.position = "absolute";
         div.style.left = "0px";
-
         div.style.display = "flex";
         div.style.flexDirection = "column";
         div.style.justifyContent = "center";
@@ -1116,7 +1013,8 @@ class Menu {
             if (!highscoreValue) {
                 highscoreValue = 0;
                 localStorage.setItem("highscore" + Object.values(difficulty)[i].name, 0);
-            }
+            };
+
             const card = document.createElement("div");
             card.style.height = "100%";
             card.style.width = "100%";
@@ -1124,19 +1022,16 @@ class Menu {
             card.style.left = "0px";
             card.style.top = "0px";
             card.style.display = "none";
-
-
             card.style.transition = "transform 0.5s ease-in-out 0s, opacity 0.2s ease-in-out 0s";
 
-            const difficultyP = document.createElement("p");
-            difficultyP.style.color = "white";
-            difficultyP.style.fontFamily = "orbitron";
-            difficultyP.style.fontSize = "40px";
-            difficultyP.style.textAlign = "center";
-            difficultyP.style.paddingTop = "30px";
-            difficultyP.innerHTML = modes[i];
-            card.appendChild(difficultyP);
-
+            const difficultyElement = document.createElement("p");
+            difficultyElement.style.color = "white";
+            difficultyElement.style.fontFamily = "orbitron";
+            difficultyElement.style.fontSize = "40px";
+            difficultyElement.style.textAlign = "center";
+            difficultyElement.style.paddingTop = "30px";
+            difficultyElement.innerHTML = modes[i];
+            card.appendChild(difficultyElement);
 
             const middleSection = document.createElement("div");
             middleSection.style.display = "flex";
@@ -1154,35 +1049,25 @@ class Menu {
             leftArrow.style.paddingRight = "70px";
             leftArrow.style.cursor = "pointer";
 
-            // no transition important
-            leftArrow.style.setProperty("transition", "none", "important");
-
-
-
-
             leftArrow.addEventListener("click", () => {
-
-                card.style.transform = "translateX(100%)"; // Slide the current card out to the right
-                card.style.opacity = "0"; // Fade the card out
+                card.style.transform = "translateX(100%)"; 
+                card.style.opacity = "0"; 
                 setTimeout(() => {
                     card.style.display = "none";
-                    card.style.transform = "translateX(0%)"; // Reset the transformation
-                    card.style.opacity = "1"; // Reset the opacity
+                    card.style.transform = "translateX(0%)"; 
+                    card.style.opacity = "1"; 
 
-                    const nextIndex = (i - 1) % 5 >= 0 ? (i - 1) % 5 : 4; // Calculate the index of the next card
+                    const nextIndex = (i - 1) % 5 >= 0 ? (i - 1) % 5 : 4; 
                     this.selectedGameMode = Object.values(difficulty)[nextIndex]
-                    console.log(nextIndex);
-
-
-
-                    div.children[nextIndex].style.transform = "translateX(-100%)"; // Slide the new card in from the left
+                    
+                    div.children[nextIndex].style.transform = "translateX(-100%)"; 
                     div.children[nextIndex].style.display = "block";
-                    div.children[nextIndex].style.opacity = "0"; // Set the initial opacity to 0
+                    div.children[nextIndex].style.opacity = "0"; 
                     setTimeout(() => {
-                        div.children[nextIndex].style.transform = "translateX(0%)"; // Reset the transformation
-                        div.children[nextIndex].style.opacity = "1"; // Fade the new card in
+                        div.children[nextIndex].style.transform = "translateX(0%)"; 
+                        div.children[nextIndex].style.opacity = "1"; 
                     }, 20);
-                }, 150); // Adjust the time to match the transition duration
+                }, 150); 
             });
 
             // Create play button
@@ -1233,6 +1118,7 @@ class Menu {
 
                     const nextIndex = (i + 1) % 5; // Calculate the index of the next card
                     this.selectedGameMode = Object.values(difficulty)[nextIndex]
+
                     div.children[nextIndex].style.transform = "translateX(100%)"; // Slide the new card in from the right
                     div.children[nextIndex].style.display = "block";
                     div.children[nextIndex].style.opacity = "0"; // Set the initial opacity to 0
@@ -1247,9 +1133,8 @@ class Menu {
             middleSection.appendChild(leftArrow);
             middleSection.appendChild(play);
             middleSection.appendChild(rightArrow);
-
-            // Add the middle section to the card
             card.appendChild(middleSection);
+
             const scoreSection = document.createElement("div");
             scoreSection.style.display = "flex";
             scoreSection.style.alignItems = "center";
@@ -1264,35 +1149,26 @@ class Menu {
             scoreSection.appendChild(score);
             card.appendChild(scoreSection);
 
-
             if (Object.values(difficulty)[i].name == (this.selectedGameMode.name)) {
                 card.style.display = "block";
-            }
+            };
 
-            // Add card to the div
             div.appendChild(card);
         }
 
         return div;
-
-
-
-    }
+    };
 
     loadAssets() {
         Assets.forEach((x) => {
             const audio = new Audio(x);
             audio.load();
         });
-
-
-    }
+    };
     startGame() {
         document.getElementById("menu").remove();
         console.log(this.selectedGameMode + "?")
         new Game(this.selectedGameMode);
-    }
-
-
-}
+    };
+};
 new Menu();
