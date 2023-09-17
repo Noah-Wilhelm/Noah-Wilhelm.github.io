@@ -197,7 +197,7 @@ class Game {
         this.createLevel();
         this.newMissile();
         this.iterate();
-        this.increseLevel();
+        this.increaseLevel();
 
     }
     pause() {
@@ -431,14 +431,14 @@ class Game {
             };
         });
     };
-    increseLevel() {
+    increaseLevel() {
         const level = document.getElementById("level");
         this.level++;
         level.innerHTML = "Level: " + this.level;
 
         let port = this.unusedPorts[Math.floor(Math.random() * this.unusedPorts.length)];
-        if (!port) port = ["", ""];
-        this.usedPorts.push(port);
+        if (port)
+            this.usedPorts.push(port);
         this.unusedPorts = this.unusedPorts.filter((x) => !this.usedPorts.includes(x));
 
 
@@ -458,7 +458,10 @@ class Game {
                 newPort.remove();
                 this.progress = 0;
             }, this.gameMode.actuallyImpossible ? 1 : 2000);
-        };
+        } else {
+            console.log("here")
+            this.progress = 0; // this is a hacky way to make it so that the game doesn't start until the new port is displayed
+        }
     };
 
     createGameOver() {
@@ -573,8 +576,9 @@ class Game {
     increaseDifficulty() {
         this.progress += 1;
         if (this.progress >= 10 + this.level * 2) {
-            this.increseLevel();
             this.progress = -10;
+            this.increaseLevel();
+           
         };
     };
     newMissile() {
@@ -601,7 +605,7 @@ class Game {
             if (!good) this.decreaseLives(missile.type == BOSS ? 5 : 1);
             this.activeMissiles.splice(this.activeMissiles.indexOf(missile), 1);
             if (good) this.increaseScore(missile.type == BOSS ? 500 : 100);
-            this.increaseDifficulty();
+        this.increaseDifficulty();
         });
 
         missile.on("selected", () => {
